@@ -3,7 +3,7 @@ import { Calendar, CheckCircle2, Circle, BookOpen, Layers, ClipboardCheck, Rotat
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Input } from "@/components/ui/input";
-import { modules } from "@/data/mock";
+import { modules } from "@/data";
 import { cn } from "@/lib/utils";
 
 const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];

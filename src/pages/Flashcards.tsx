@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, RotateCcw, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { flashcards, modules } from "@/data/mock";
+import { flashcards, modules } from "@/data";
 import { cn } from "@/lib/utils";
 
 export default function FlashcardsPage() {

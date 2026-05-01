@@ -1,7 +1,8 @@
+import type { ComponentType } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Clock, Layers, ClipboardCheck, Star } from "lucide-react";
 import * as Icons from "lucide-react";
-import { modules, subtopics } from "@/data/mock";
+import { modules, subtopics } from "@/data";
 import { ProgressBar } from "@/components/ProgressBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ export default function ModuleDetail() {
     );
   }
 
-  const Icon = (Icons as any)[module.icon] ?? Icons.BookOpen;
+  const Icon = (Icons as Record<string, ComponentType<{ className?: string }>>)[module.icon] ?? Icons.BookOpen;
 
   return (
     <div className="container-page py-8">

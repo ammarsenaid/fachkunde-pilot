@@ -1,0 +1,8 @@
+import type { QuizQuestion } from "@/types/learning";
+
+export const quizQuestions: QuizQuestion[] = [
+  { id: "q1", moduleId: "pbefg", question: "Welches Gesetz regelt die entgeltliche Personenbeförderung mit Taxi und Mietwagen in Deutschland?", options: ["StVO – Straßenverkehrsordnung", "PBefG – Personenbeförderungsgesetz", "BOKraft", "GüKG"], correctIndex: 1, explanation: "Das Personenbeförderungsgesetz (PBefG) ist das zentrale Gesetz für die entgeltliche Personenbeförderung im Straßenverkehr.", arabicExplanation: "قانون نقل الأشخاص (PBefG) هو القانون المركزي لنقل الأشخاص مقابل أجر." },
+  { id: "q2", moduleId: "pbefg", question: "Wer ist Adressat der Beförderungspflicht im Taxiverkehr?", options: ["Der Fahrer", "Der Unternehmer", "Die Genehmigungsbehörde", "Der Fahrgast"], correctIndex: 1, explanation: "Die Beförderungspflicht trifft den Taxiunternehmer als Inhaber der Genehmigung." },
+  { id: "q3", moduleId: "rechtliche-grundlagen", question: "Wie lange müssen geschäftliche Unterlagen wie Rechnungen grundsätzlich aufbewahrt werden?", options: ["2 Jahre", "5 Jahre", "10 Jahre", "Unbegrenzt"], correctIndex: 2, explanation: "Rechnungen und Buchungsbelege unterliegen einer 10-jährigen Aufbewahrungsfrist nach HGB und AO." },
+  { id: "q4", moduleId: "pbefg", question: "Was gilt für Mietwagen nach Auftragsende?", options: ["Sie dürfen frei auf der Straße auf Fahrgäste warten", "Sie müssen unverzüglich zum Betriebssitz zurückkehren", "Sie dürfen am Taxistand stehen", "Sie dürfen Werbung betreiben"], correctIndex: 1, explanation: "Die Rückkehrpflicht gem. § 49 Abs. 4 PBefG verpflichtet Mietwagen zur Rückkehr an den Betriebssitz." },
+];

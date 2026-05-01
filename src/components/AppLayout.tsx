@@ -1,8 +1,9 @@
+import type { ComponentType } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { GraduationCap, Menu, X } from "lucide-react";
 import * as Icons from "lucide-react";
 import { useState } from "react";
-import { navigationItems } from "@/data/mock";
+import { navigationItems } from "@/data";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -30,7 +31,7 @@ export function AppLayout() {
 
           <nav className="hidden items-center gap-1 lg:flex">
             {navigationItems.map((item) => {
-              const Icon = (Icons as any)[item.icon];
+              const Icon = (Icons as Record<string, ComponentType<{ className?: string }>>)[item.icon];
               const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
               return (
                 <NavLink
@@ -64,7 +65,7 @@ export function AppLayout() {
           <div className="border-t border-border bg-card lg:hidden animate-fade-in">
             <nav className="container-page grid grid-cols-2 gap-2 py-4">
               {navigationItems.map((item) => {
-                const Icon = (Icons as any)[item.icon];
+                const Icon = (Icons as Record<string, ComponentType<{ className?: string }>>)[item.icon];
                 const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
                 return (
                   <NavLink
@@ -94,7 +95,7 @@ export function AppLayout() {
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 backdrop-blur-md lg:hidden">
         <div className="grid grid-cols-5">
           {mobileNav.map((item) => {
-            const Icon = (Icons as any)[item.icon];
+            const Icon = (Icons as Record<string, ComponentType<{ className?: string }>>)[item.icon];
             const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
               <NavLink

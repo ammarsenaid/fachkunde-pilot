@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { ModuleCard } from "@/components/ModuleCard";
-import { modules } from "@/data/mock";
+import { modules } from "@/data";
 import { Input } from "@/components/ui/input";
 
 export default function Modules() {
