@@ -1,0 +1,5 @@
+services:
+  fachkunde-pilot:
+    build: .
+    ports:
+      - "8080:80"

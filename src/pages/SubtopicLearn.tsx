@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Clock, Lightbulb, AlertCircle, ScrollText, Languages, CheckCircle2, Layers, ClipboardCheck, Star, StickyNote } from "lucide-react";
-import { modules, subtopics } from "@/data/mock";
+import { modules, subtopics } from "@/data";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 

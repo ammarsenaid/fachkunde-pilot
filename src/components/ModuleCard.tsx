@@ -1,13 +1,14 @@
+import type { ComponentType } from "react";
 import { Link } from "react-router-dom";
 import { Clock, Layers, ArrowRight } from "lucide-react";
 import * as Icons from "lucide-react";
-import type { Module } from "@/data/mock";
+import type { LearningModule } from "@/types/learning";
 import { ProgressBar } from "./ProgressBar";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 
-export function ModuleCard({ module }: { module: Module }) {
-  const Icon = (Icons as any)[module.icon] ?? Icons.BookOpen;
+export function ModuleCard({ module }: { module: LearningModule }) {
+  const Icon = (Icons as Record<string, ComponentType<{ className?: string }>>)[module.icon] ?? Icons.BookOpen;
   return (
     <div className="card-base card-hover group flex flex-col p-6">
       <div className="flex items-start justify-between gap-3">

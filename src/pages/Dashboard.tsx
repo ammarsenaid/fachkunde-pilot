@@ -3,7 +3,7 @@ import { Flame, Target, BookOpen, Layers, ClipboardCheck, TrendingUp, ArrowRight
 import { Button } from "@/components/ui/button";
 import { DashboardStatCard } from "@/components/DashboardStatCard";
 import { ProgressBar } from "@/components/ProgressBar";
-import { modules } from "@/data/mock";
+import { modules } from "@/data";
 
 export default function Dashboard() {
   const current = modules.find((m) => m.status === "in_progress") ?? modules[0];

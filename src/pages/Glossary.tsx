@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Search, Languages } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { glossary } from "@/data/mock";
+import { glossary } from "@/data";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 

@@ -3,7 +3,7 @@ import { BookOpen, Layers, ClipboardCheck, BookMarked, Upload, Plus, Eye, Star }
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { modules } from "@/data/mock";
+import { modules } from "@/data";
 
 const sections = [
   { id: "modules", label: "Module", icon: BookOpen },

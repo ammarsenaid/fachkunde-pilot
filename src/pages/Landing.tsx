@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { GraduationCap, ArrowRight, CheckCircle2, Layers, Calendar, Smartphone, Languages, Trophy, Sparkles, BookOpen, ClipboardCheck, Brain, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { modules } from "@/data/mock";
+import { modules } from "@/data";
 
 const benefits = [
   { icon: Calendar, title: "Strukturierter Lernplan", desc: "Klar geplante Wochen bis zu deiner Prüfung." },

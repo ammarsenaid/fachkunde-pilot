@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { Status } from "@/data/mock";
+import type { Status } from "@/types/learning";
 
 const labels: Record<Status, string> = {
   not_started: "Nicht begonnen",
