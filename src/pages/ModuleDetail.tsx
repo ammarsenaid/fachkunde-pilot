@@ -1,0 +1,99 @@
+import { Link, useParams } from "react-router-dom";
+import { ArrowLeft, ArrowRight, Clock, Layers, ClipboardCheck, Star } from "lucide-react";
+import * as Icons from "lucide-react";
+import { modules, subtopics } from "@/data/mock";
+import { ProgressBar } from "@/components/ProgressBar";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/EmptyState";
+
+export default function ModuleDetail() {
+  const { moduleId } = useParams();
+  const module = modules.find((m) => m.id === moduleId);
+  const list = subtopics.filter((s) => s.moduleId === moduleId);
+
+  if (!module) {
+    return (
+      <div className="container-page py-12">
+        <EmptyState title="Modul nicht gefunden" description="Das gesuchte Modul existiert nicht." action={<Button asChild><Link to="/module">Zurück zu Module</Link></Button>} />
+      </div>
+    );
+  }
+
+  const Icon = (Icons as any)[module.icon] ?? Icons.BookOpen;
+
+  return (
+    <div className="container-page py-8">
+      <Link to="/module" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="h-4 w-4" /> Alle Module
+      </Link>
+
+      <div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-start gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-blue-soft text-accent-blue">
+            <Icon className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="text-sm font-medium text-muted-foreground">Modul {module.number}</div>
+            <h1 className="text-3xl font-bold tracking-tight">{module.title}</h1>
+            <p className="mt-2 max-w-2xl text-muted-foreground">{module.description}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <StatusBadge status={module.status} />
+              <span className="inline-flex items-center gap-1"><Layers className="h-4 w-4" /> {module.subtopicCount} Unterthemen</span>
+              <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> ca. {Math.round(module.estimatedMinutes / 60)} h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 card-base p-5">
+        <ProgressBar value={module.progress} showLabel />
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold">Unterthemen</h2>
+        {list.length === 0 ? (
+          <div className="mt-4">
+            <EmptyState
+              icon={ClipboardCheck}
+              title="Inhalte folgen"
+              description="Die Unterthemen für dieses Modul werden bald hinzugefügt."
+            />
+          </div>
+        ) : (
+          <ol className="mt-4 space-y-3">
+            {list.map((s, idx) => (
+              <li key={s.id} className="card-base card-hover p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-sm font-bold">{idx + 1}</div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-semibold">{s.title}</h3>
+                        {s.examRelevance === 3 && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">
+                            <Star className="h-3 w-3" /> Hoch prüfungsrelevant
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                        <StatusBadge status={s.status} />
+                        <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {s.readingMinutes} Min</span>
+                        <span className="inline-flex items-center gap-1"><Layers className="h-3.5 w-3.5" /> {s.flashcardCount} Karten</span>
+                        <span className="inline-flex items-center gap-1"><ClipboardCheck className="h-3.5 w-3.5" /> {s.quizCount} Fragen</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button asChild className="shrink-0 bg-primary hover:bg-primary-hover">
+                    <Link to={`/module/${module.id}/${s.id}`}>Lernen <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </div>
+  );
+}
