@@ -3,9 +3,12 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Landing from "./pages/Landing.tsx";
+import Auth from "./pages/Auth.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Modules from "./pages/Modules.tsx";
 import ModuleDetail from "./pages/ModuleDetail.tsx";
@@ -26,24 +29,26 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/landing" element={<Landing />} />
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/module" element={<Modules />} />
-            <Route path="/module/:moduleId" element={<ModuleDetail />} />
-            <Route path="/module/:moduleId/:subtopicId" element={<SubtopicLearn />} />
-            <Route path="/flashcards" element={<FlashcardsPage />} />
-            <Route path="/pruefung" element={<Quiz />} />
-            <Route path="/lernplan" element={<StudyPlan />} />
-            <Route path="/glossar" element={<Glossary />} />
-            <Route path="/notizen" element={<Notes />} />
-            <Route path="/admin" element={<Admin />} />
-          </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/landing" element={<Landing />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/module" element={<Modules />} />
+              <Route path="/module/:moduleId" element={<ModuleDetail />} />
+              <Route path="/module/:moduleId/:subtopicId" element={<SubtopicLearn />} />
+              <Route path="/flashcards" element={<FlashcardsPage />} />
+              <Route path="/pruefung" element={<Quiz />} />
+              <Route path="/lernplan" element={<StudyPlan />} />
+              <Route path="/glossar" element={<Glossary />} />
+              <Route path="/notizen" element={<Notes />} />
+              <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
