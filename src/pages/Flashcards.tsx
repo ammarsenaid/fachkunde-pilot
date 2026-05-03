@@ -7,7 +7,7 @@ import { useFlashcardReviews } from "@/hooks/useFlashcardReviews";
 
 export default function FlashcardsPage() {
   const [moduleFilter, setModuleFilter] = useState<string>("all");
-  const { reviews, rate, dueCount } = useFlashcardReviews();
+  const { rate, dueCount } = useFlashcardReviews();
   const cards = useMemo(
     () => (moduleFilter === "all" ? flashcards : flashcards.filter((c) => c.moduleId === moduleFilter)),
     [moduleFilter]
