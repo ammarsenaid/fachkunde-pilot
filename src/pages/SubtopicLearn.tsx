@@ -202,7 +202,7 @@ export default function SubtopicLearn() {
               ] as const).map(([k, label]) => (
                 <li key={k}>
                   <button
-                    onClick={() => setChecks((c) => ({ ...c, [k]: !c[k] }))}
+                    onClick={() => toggleCheck(k)}
                     className="flex w-full items-center gap-2.5 text-left"
                   >
                     <CheckCircle2 className={cn("h-5 w-5 transition-colors", checks[k] ? "text-success" : "text-muted-foreground/40")} />
@@ -220,12 +220,53 @@ export default function SubtopicLearn() {
             <Button asChild variant="outline" className="w-full justify-start">
               <Link to="/pruefung"><ClipboardCheck className="mr-2 h-4 w-4" /> Quiz starten</Link>
             </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <Star className="mr-2 h-4 w-4" /> Als wichtig markieren
+            <Button
+              variant="outline"
+              className={cn("w-full justify-start", bookmarked && "border-warning text-warning")}
+              onClick={async () => {
+                await toggleBookmark(module.id, subtopic.id, subtopic.title);
+                toast({ title: bookmarked ? "Lesezeichen entfernt" : "Als wichtig markiert" });
+              }}
+            >
+              <Star className={cn("mr-2 h-4 w-4", bookmarked && "fill-warning")} />
+              {bookmarked ? "Markierung entfernen" : "Als wichtig markieren"}
             </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <StickyNote className="mr-2 h-4 w-4" /> Notiz hinzufügen
-            </Button>
+          </div>
+
+          <div className="card-base p-5">
+            <div className="flex items-center gap-2">
+              <StickyNote className="h-4 w-4 text-accent-blue" />
+              <h3 className="text-sm font-semibold">Notizen</h3>
+            </div>
+            <div className="mt-3 space-y-2">
+              <Input placeholder="Titel" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} />
+              <Textarea placeholder="Deine Notiz…" rows={3} value={noteContent} onChange={(e) => setNoteContent(e.target.value)} />
+              <Button
+                size="sm"
+                className="w-full"
+                disabled={!noteTitle.trim()}
+                onClick={async () => {
+                  await createNote({ title: noteTitle.trim(), content: noteContent, module_id: module.id, subtopic_id: subtopic.id });
+                  setNoteTitle(""); setNoteContent("");
+                  toast({ title: "Notiz gespeichert" });
+                }}
+              >
+                Notiz speichern
+              </Button>
+            </div>
+            {notes.length > 0 && (
+              <ul className="mt-4 space-y-2">
+                {notes.map((n) => (
+                  <li key={n.id} className="rounded-lg border border-border p-3 text-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-medium">{n.title}</div>
+                      <button onClick={() => removeNote(n.id)} className="text-xs text-muted-foreground hover:text-destructive">Löschen</button>
+                    </div>
+                    {n.content && <p className="mt-1 text-muted-foreground">{n.content}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </aside>
       </div>
