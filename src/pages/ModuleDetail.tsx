@@ -73,7 +73,10 @@ export default function ModuleDetail() {
           </div>
         ) : (
           <ol className="mt-4 space-y-3">
-            {list.map((s, idx) => (
+            {list.map((s, idx) => {
+              const row = moduleProg.find((p) => p.subtopic_id === s.id);
+              const liveStatus: Status = row ? dbToStatus[row.status] ?? "in_progress" : "not_started";
+              return (
               <li key={s.id} className="card-base card-hover p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-4">
@@ -89,7 +92,7 @@ export default function ModuleDetail() {
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        <StatusBadge status={s.status} />
+                        <StatusBadge status={liveStatus} />
                         <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {s.readingMinutes} Min</span>
                         <span className="inline-flex items-center gap-1"><Layers className="h-3.5 w-3.5" /> {s.flashcardCount} Karten</span>
                         <span className="inline-flex items-center gap-1"><ClipboardCheck className="h-3.5 w-3.5" /> {s.quizCount} Fragen</span>
