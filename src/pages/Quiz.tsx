@@ -33,17 +33,30 @@ export default function Quiz() {
   function start() {
     setPhase("playing");
     setIdx(0); setSelected(null); setAnswers([]); setShowAr(false);
+    startedAtRef.current = Date.now();
+    savedRef.current = false;
   }
 
   function submit() {
     if (selected === null) return;
-    setAnswers((a) => [...a, { correct: selected === q.correctIndex }]);
+    setAnswers((a) => [...a, { qid: q.id, correct: selected === q.correctIndex, selected }]);
   }
 
   function next() {
     if (idx + 1 >= total) setPhase("result");
     else { setIdx((i) => i + 1); setSelected(null); setShowAr(false); }
   }
+
+  useEffect(() => {
+    if (phase === "result" && !savedRef.current && total > 0) {
+      savedRef.current = true;
+      void save({
+        module_id: moduleFilter === "all" ? null : moduleFilter,
+        score, total, duration_seconds: Math.round((Date.now() - startedAtRef.current) / 1000),
+        answers,
+      });
+    }
+  }, [phase, total, score, moduleFilter, answers, save]);
 
   if (phase === "intro") {
     return (
