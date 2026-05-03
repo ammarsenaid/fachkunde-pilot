@@ -19,7 +19,10 @@ export default function Quiz() {
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [showAr, setShowAr] = useState(false);
-  const [answers, setAnswers] = useState<Array<{ correct: boolean }>>([]);
+  const [answers, setAnswers] = useState<Array<{ qid: string; correct: boolean; selected: number }>>([]);
+  const startedAtRef = useRef<number>(Date.now());
+  const { save } = useQuizAttempts();
+  const savedRef = useRef(false);
 
   const total = questions.length;
   const q = questions[idx];
