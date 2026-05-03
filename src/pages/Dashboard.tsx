@@ -121,7 +121,7 @@ export default function Dashboard() {
             </div>
             <p className="mt-1 text-sm text-muted-foreground">Diese Themen brauchen Wiederholung.</p>
             <ul className="mt-4 space-y-3">
-              {modules.filter((m) => m.status === "review").concat(modules.filter((m) => m.progress > 0 && m.progress < 50)).slice(0, 3).map((m) => (
+              {moduleProgress.filter((m) => m.status === "review").concat(moduleProgress.filter((m) => m.progress > 0 && m.progress < 50)).slice(0, 3).map((m) => (
                 <li key={m.id}>
                   <Link to={`/module/${m.id}`} className="flex items-center justify-between gap-2 rounded-lg p-2 -mx-2 hover:bg-secondary">
                     <span className="truncate text-sm font-medium">{m.title}</span>
