@@ -1,16 +1,27 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Clock, Layers, ClipboardCheck, Star } from "lucide-react";
 import * as Icons from "lucide-react";
-import { modules, subtopics } from "@/data/mock";
+import { modules, subtopics, type Status } from "@/data/mock";
 import { ProgressBar } from "@/components/ProgressBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
+import { useAllProgress } from "@/hooks/useProgress";
+
+const dbToStatus: Record<string, Status> = {
+  done: "completed", in_progress: "in_progress", review: "review", not_started: "not_started",
+};
 
 export default function ModuleDetail() {
   const { moduleId } = useParams();
   const module = modules.find((m) => m.id === moduleId);
   const list = subtopics.filter((s) => s.moduleId === moduleId);
+  const { data: progress } = useAllProgress();
+  const moduleProg = progress.filter((p) => p.module_id === moduleId);
+  const completed = moduleProg.filter((p) => p.status === "done").length;
+  const inProg = moduleProg.filter((p) => p.status === "in_progress" || p.status === "review").length;
+  const totalSubs = list.length || module?.subtopicCount || 1;
+  const livePct = Math.min(100, Math.round((completed * 100 + inProg * 40) / totalSubs));
 
   if (!module) {
     return (
