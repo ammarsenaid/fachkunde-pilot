@@ -3,11 +3,34 @@ import { Flame, Target, BookOpen, Layers, ClipboardCheck, TrendingUp, ArrowRight
 import { Button } from "@/components/ui/button";
 import { DashboardStatCard } from "@/components/DashboardStatCard";
 import { ProgressBar } from "@/components/ProgressBar";
-import { modules } from "@/data/mock";
+import { modules, subtopics } from "@/data/mock";
+import { useAllProgress } from "@/hooks/useProgress";
+import { useFlashcardReviews } from "@/hooks/useFlashcardReviews";
+import { useQuizAttempts } from "@/hooks/useQuizAttempts";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
-  const current = modules.find((m) => m.status === "in_progress") ?? modules[0];
-  const overall = Math.round(modules.reduce((sum, m) => sum + m.progress, 0) / modules.length);
+  const { profile } = useAuth();
+  const { data: progress } = useAllProgress();
+  const { dueCount } = useFlashcardReviews();
+  const { attempts } = useQuizAttempts();
+
+  const moduleProgress = modules.map((m) => {
+    const subs = subtopics.filter((s) => s.moduleId === m.id);
+    const total = subs.length || m.subtopicCount || 1;
+    const moduleRows = progress.filter((p) => p.module_id === m.id);
+    const done = moduleRows.filter((p) => p.status === "done").length;
+    const inProg = moduleRows.filter((p) => p.status === "in_progress" || p.status === "review").length;
+    const pct = Math.min(100, Math.round((done * 100 + inProg * 40) / total));
+    const status: "completed" | "in_progress" | "review" | "not_started" =
+      pct >= 100 ? "completed" : moduleRows.some((r) => r.status === "review") ? "review" : pct > 0 ? "in_progress" : "not_started";
+    return { ...m, progress: pct, status };
+  });
+  const current = moduleProgress.find((m) => m.status === "in_progress") ?? moduleProgress.find((m) => m.status !== "completed") ?? moduleProgress[0];
+  const overall = Math.round(moduleProgress.reduce((sum, m) => sum + m.progress, 0) / moduleProgress.length);
+  const lastAttempt = attempts[0];
+  const lastPct = lastAttempt ? Math.round((lastAttempt.score / Math.max(1, lastAttempt.total)) * 100) : null;
+  const goal = profile?.daily_goal_minutes ?? 30;
 
   return (
     <div className="container-page py-8">
