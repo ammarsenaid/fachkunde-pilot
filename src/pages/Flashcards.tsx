@@ -95,13 +95,13 @@ export default function FlashcardsPage() {
         </button>
 
         <div className="mt-5 grid grid-cols-3 gap-3">
-          <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => rate("missed")}>
+          <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => handleRate("missed")}>
             Nicht gewusst
           </Button>
-          <Button variant="outline" className="border-warning/30 text-warning hover:bg-warning-soft hover:text-warning" onClick={() => rate("unsure")}>
+          <Button variant="outline" className="border-warning/30 text-warning hover:bg-warning-soft hover:text-warning" onClick={() => handleRate("unsure")}>
             Unsicher
           </Button>
-          <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => rate("knew")}>
+          <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => handleRate("knew")}>
             Wusste ich
           </Button>
         </div>
