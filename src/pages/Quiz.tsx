@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Star, Languages, ClipboardCheck, Trophy, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { quizQuestions, modules } from "@/data/mock";
 import { cn } from "@/lib/utils";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Link } from "react-router-dom";
+import { useQuizAttempts } from "@/hooks/useQuizAttempts";
 
 type Phase = "intro" | "playing" | "result";
 
