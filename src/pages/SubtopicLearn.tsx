@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Clock, Lightbulb, AlertCircle, ScrollText, Languages, CheckCircle2, Layers, ClipboardCheck, Star, StickyNote } from "lucide-react";
 import { modules, subtopics } from "@/data/mock";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAllProgress, upsertProgress } from "@/hooks/useProgress";
+import { useBookmarks } from "@/hooks/useBookmarks";
+import { useNotes } from "@/hooks/useNotes";
+import { useAuth } from "@/contexts/AuthContext";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
 
 export default function SubtopicLearn() {
   const { moduleId, subtopicId } = useParams();
@@ -11,7 +18,38 @@ export default function SubtopicLearn() {
   const moduleSubs = subtopics.filter((s) => s.moduleId === moduleId);
   const subtopic = moduleSubs.find((s) => s.id === subtopicId) ?? moduleSubs[0];
   const [showArabic, setShowArabic] = useState(false);
-  const [checks, setChecks] = useState({ read: false, flashcards: false, quiz: false });
+  const { user } = useAuth();
+  const { data: progress, refresh } = useAllProgress();
+  const { isBookmarked, toggle: toggleBookmark } = useBookmarks();
+  const noteFilter = useMemo(() => ({ moduleId: module?.id, subtopicId: subtopic?.id }), [module?.id, subtopic?.id]);
+  const { notes, create: createNote, remove: removeNote } = useNotes(noteFilter);
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteContent, setNoteContent] = useState("");
+
+  const progRow = progress.find((p) => p.module_id === module?.id && p.subtopic_id === subtopic?.id);
+  const checks = {
+    read: !!progRow && progRow.progress_pct >= 33,
+    flashcards: !!progRow && progRow.progress_pct >= 66,
+    quiz: !!progRow && progRow.status === "done",
+  };
+
+  // Auto-mark in_progress on entering
+  useEffect(() => {
+    if (!user || !module || !subtopic) return;
+    if (!progRow) {
+      void upsertProgress(user.id, module.id, subtopic.id, { status: "in_progress", progress_pct: 10 }).then(refresh);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, module?.id, subtopic?.id]);
+
+  async function toggleCheck(kind: "read" | "flashcards" | "quiz") {
+    if (!user || !module || !subtopic) return;
+    const next = { ...checks, [kind]: !checks[kind] };
+    const pct = (next.read ? 33 : 0) + (next.flashcards ? 33 : 0) + (next.quiz ? 34 : 0);
+    const status = pct >= 100 ? "done" : pct > 0 ? "in_progress" : "not_started";
+    await upsertProgress(user.id, module.id, subtopic.id, { status, progress_pct: pct });
+    refresh();
+  }
 
   if (!module || !subtopic) {
     return (
@@ -20,6 +58,8 @@ export default function SubtopicLearn() {
       </div>
     );
   }
+
+  const bookmarked = isBookmarked(module.id, subtopic.id);
 
   return (
     <div className="container-page py-6">
