@@ -30,14 +30,14 @@ export function useQuizAttempts() {
 
   const save = async (a: Omit<QuizAttempt, "id" | "created_at">) => {
     if (!user) return;
-    await supabase.from("quiz_attempts").insert({
+    await supabase.from("quiz_attempts").insert([{
       user_id: user.id,
-      module_id: a.module_id,
+      module_id: a.module_id ?? null,
       score: a.score,
       total: a.total,
       duration_seconds: a.duration_seconds,
-      answers: a.answers as unknown as object,
-    });
+      answers: a.answers as never,
+    }]);
     await refresh();
   };
 
