@@ -36,7 +36,7 @@ export default function FlashcardsPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Flashcards</h1>
-          <p className="text-muted-foreground">Tägliche Wiederholung – kurz und effektiv.</p>
+          <p className="text-muted-foreground">Tägliche Wiederholung – {dueCount} Karten heute fällig.</p>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Filter className="h-4 w-4 text-muted-foreground" />
