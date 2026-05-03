@@ -54,10 +54,10 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <DashboardStatCard label="Heutiges Lernziel" value="45 Min" hint="22 / 45 Min erledigt" icon={Target} tone="info" />
-        <DashboardStatCard label="Lernstreak" value="7 Tage" hint="Weiter so 🔥" icon={Flame} tone="warning" />
-        <DashboardStatCard label="Karteikarten heute" value={18} hint="zur Wiederholung fällig" icon={Layers} tone="default" />
-        <DashboardStatCard label="Letzte Mock-Prüfung" value="78%" hint="bestanden – Ziel: 75%" icon={GraduationCap} tone="success" />
+        <DashboardStatCard label="Heutiges Lernziel" value={`${goal} Min`} hint="Tagesziel" icon={Target} tone="info" />
+        <DashboardStatCard label="Lernstreak" value={`${Math.max(1, attempts.length)} Tage`} hint="Weiter so 🔥" icon={Flame} tone="warning" />
+        <DashboardStatCard label="Karteikarten heute" value={dueCount} hint="zur Wiederholung fällig" icon={Layers} tone="default" />
+        <DashboardStatCard label="Letzte Mock-Prüfung" value={lastPct !== null ? `${lastPct}%` : "—"} hint={lastPct !== null ? (lastPct >= 75 ? "bestanden" : "nicht bestanden") : "noch keine"} icon={GraduationCap} tone="success" />
       </div>
 
       {/* Main grid */}
