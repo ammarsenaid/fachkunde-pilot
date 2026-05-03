@@ -1,16 +1,27 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Clock, Layers, ClipboardCheck, Star } from "lucide-react";
 import * as Icons from "lucide-react";
-import { modules, subtopics } from "@/data/mock";
+import { modules, subtopics, type Status } from "@/data/mock";
 import { ProgressBar } from "@/components/ProgressBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
+import { useAllProgress } from "@/hooks/useProgress";
+
+const dbToStatus: Record<string, Status> = {
+  done: "completed", in_progress: "in_progress", review: "review", not_started: "not_started",
+};
 
 export default function ModuleDetail() {
   const { moduleId } = useParams();
   const module = modules.find((m) => m.id === moduleId);
   const list = subtopics.filter((s) => s.moduleId === moduleId);
+  const { data: progress } = useAllProgress();
+  const moduleProg = progress.filter((p) => p.module_id === moduleId);
+  const completed = moduleProg.filter((p) => p.status === "done").length;
+  const inProg = moduleProg.filter((p) => p.status === "in_progress" || p.status === "review").length;
+  const totalSubs = list.length || module?.subtopicCount || 1;
+  const livePct = Math.min(100, Math.round((completed * 100 + inProg * 40) / totalSubs));
 
   if (!module) {
     return (
@@ -47,7 +58,7 @@ export default function ModuleDetail() {
       </div>
 
       <div className="mt-6 card-base p-5">
-        <ProgressBar value={module.progress} showLabel />
+        <ProgressBar value={livePct} showLabel />
       </div>
 
       <div className="mt-8">
@@ -62,7 +73,10 @@ export default function ModuleDetail() {
           </div>
         ) : (
           <ol className="mt-4 space-y-3">
-            {list.map((s, idx) => (
+            {list.map((s, idx) => {
+              const row = moduleProg.find((p) => p.subtopic_id === s.id);
+              const liveStatus: Status = row ? dbToStatus[row.status] ?? "in_progress" : "not_started";
+              return (
               <li key={s.id} className="card-base card-hover p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-4">
@@ -78,7 +92,7 @@ export default function ModuleDetail() {
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        <StatusBadge status={s.status} />
+                        <StatusBadge status={liveStatus} />
                         <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {s.readingMinutes} Min</span>
                         <span className="inline-flex items-center gap-1"><Layers className="h-3.5 w-3.5" /> {s.flashcardCount} Karten</span>
                         <span className="inline-flex items-center gap-1"><ClipboardCheck className="h-3.5 w-3.5" /> {s.quizCount} Fragen</span>
@@ -90,7 +104,7 @@ export default function ModuleDetail() {
                   </Button>
                 </div>
               </li>
-            ))}
+            );})}
           </ol>
         )}
       </div>

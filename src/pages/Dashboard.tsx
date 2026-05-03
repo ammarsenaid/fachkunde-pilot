@@ -3,11 +3,34 @@ import { Flame, Target, BookOpen, Layers, ClipboardCheck, TrendingUp, ArrowRight
 import { Button } from "@/components/ui/button";
 import { DashboardStatCard } from "@/components/DashboardStatCard";
 import { ProgressBar } from "@/components/ProgressBar";
-import { modules } from "@/data/mock";
+import { modules, subtopics } from "@/data/mock";
+import { useAllProgress } from "@/hooks/useProgress";
+import { useFlashcardReviews } from "@/hooks/useFlashcardReviews";
+import { useQuizAttempts } from "@/hooks/useQuizAttempts";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
-  const current = modules.find((m) => m.status === "in_progress") ?? modules[0];
-  const overall = Math.round(modules.reduce((sum, m) => sum + m.progress, 0) / modules.length);
+  const { profile } = useAuth();
+  const { data: progress } = useAllProgress();
+  const { dueCount } = useFlashcardReviews();
+  const { attempts } = useQuizAttempts();
+
+  const moduleProgress = modules.map((m) => {
+    const subs = subtopics.filter((s) => s.moduleId === m.id);
+    const total = subs.length || m.subtopicCount || 1;
+    const moduleRows = progress.filter((p) => p.module_id === m.id);
+    const done = moduleRows.filter((p) => p.status === "done").length;
+    const inProg = moduleRows.filter((p) => p.status === "in_progress" || p.status === "review").length;
+    const pct = Math.min(100, Math.round((done * 100 + inProg * 40) / total));
+    const status: "completed" | "in_progress" | "review" | "not_started" =
+      pct >= 100 ? "completed" : moduleRows.some((r) => r.status === "review") ? "review" : pct > 0 ? "in_progress" : "not_started";
+    return { ...m, progress: pct, status };
+  });
+  const current = moduleProgress.find((m) => m.status === "in_progress") ?? moduleProgress.find((m) => m.status !== "completed") ?? moduleProgress[0];
+  const overall = Math.round(moduleProgress.reduce((sum, m) => sum + m.progress, 0) / moduleProgress.length);
+  const lastAttempt = attempts[0];
+  const lastPct = lastAttempt ? Math.round((lastAttempt.score / Math.max(1, lastAttempt.total)) * 100) : null;
+  const goal = profile?.daily_goal_minutes ?? 30;
 
   return (
     <div className="container-page py-8">
@@ -31,10 +54,10 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <DashboardStatCard label="Heutiges Lernziel" value="45 Min" hint="22 / 45 Min erledigt" icon={Target} tone="info" />
-        <DashboardStatCard label="Lernstreak" value="7 Tage" hint="Weiter so 🔥" icon={Flame} tone="warning" />
-        <DashboardStatCard label="Karteikarten heute" value={18} hint="zur Wiederholung fällig" icon={Layers} tone="default" />
-        <DashboardStatCard label="Letzte Mock-Prüfung" value="78%" hint="bestanden – Ziel: 75%" icon={GraduationCap} tone="success" />
+        <DashboardStatCard label="Heutiges Lernziel" value={`${goal} Min`} hint="Tagesziel" icon={Target} tone="info" />
+        <DashboardStatCard label="Lernstreak" value={`${Math.max(1, attempts.length)} Tage`} hint="Weiter so 🔥" icon={Flame} tone="warning" />
+        <DashboardStatCard label="Karteikarten heute" value={dueCount} hint="zur Wiederholung fällig" icon={Layers} tone="default" />
+        <DashboardStatCard label="Letzte Mock-Prüfung" value={lastPct !== null ? `${lastPct}%` : "—"} hint={lastPct !== null ? (lastPct >= 75 ? "bestanden" : "nicht bestanden") : "noch keine"} icon={GraduationCap} tone="success" />
       </div>
 
       {/* Main grid */}
@@ -98,7 +121,7 @@ export default function Dashboard() {
             </div>
             <p className="mt-1 text-sm text-muted-foreground">Diese Themen brauchen Wiederholung.</p>
             <ul className="mt-4 space-y-3">
-              {modules.filter((m) => m.status === "review").concat(modules.filter((m) => m.progress > 0 && m.progress < 50)).slice(0, 3).map((m) => (
+              {moduleProgress.filter((m) => m.status === "review").concat(moduleProgress.filter((m) => m.progress > 0 && m.progress < 50)).slice(0, 3).map((m) => (
                 <li key={m.id}>
                   <Link to={`/module/${m.id}`} className="flex items-center justify-between gap-2 rounded-lg p-2 -mx-2 hover:bg-secondary">
                     <span className="truncate text-sm font-medium">{m.title}</span>

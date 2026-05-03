@@ -3,9 +3,11 @@ import { ArrowLeft, ArrowRight, RotateCcw, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { flashcards, modules } from "@/data/mock";
 import { cn } from "@/lib/utils";
+import { useFlashcardReviews } from "@/hooks/useFlashcardReviews";
 
 export default function FlashcardsPage() {
   const [moduleFilter, setModuleFilter] = useState<string>("all");
+  const { rate, dueCount } = useFlashcardReviews();
   const cards = useMemo(
     () => (moduleFilter === "all" ? flashcards : flashcards.filter((c) => c.moduleId === moduleFilter)),
     [moduleFilter]
@@ -16,9 +18,10 @@ export default function FlashcardsPage() {
 
   const card = cards[idx % cards.length];
 
-  function rate(kind: "knew" | "unsure" | "missed") {
+  async function handleRate(kind: "knew" | "unsure" | "missed") {
     setStats((s) => ({ ...s, [kind]: s[kind] + 1 }));
     setFlipped(false);
+    await rate(card.id, card.moduleId, kind);
     setIdx((i) => i + 1);
   }
 
@@ -33,7 +36,7 @@ export default function FlashcardsPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Flashcards</h1>
-          <p className="text-muted-foreground">Tägliche Wiederholung – kurz und effektiv.</p>
+          <p className="text-muted-foreground">Tägliche Wiederholung – {dueCount} Karten heute fällig.</p>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Filter className="h-4 w-4 text-muted-foreground" />
@@ -92,13 +95,13 @@ export default function FlashcardsPage() {
         </button>
 
         <div className="mt-5 grid grid-cols-3 gap-3">
-          <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => rate("missed")}>
+          <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive-soft hover:text-destructive" onClick={() => handleRate("missed")}>
             Nicht gewusst
           </Button>
-          <Button variant="outline" className="border-warning/30 text-warning hover:bg-warning-soft hover:text-warning" onClick={() => rate("unsure")}>
+          <Button variant="outline" className="border-warning/30 text-warning hover:bg-warning-soft hover:text-warning" onClick={() => handleRate("unsure")}>
             Unsicher
           </Button>
-          <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => rate("knew")}>
+          <Button className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => handleRate("knew")}>
             Wusste ich
           </Button>
         </div>

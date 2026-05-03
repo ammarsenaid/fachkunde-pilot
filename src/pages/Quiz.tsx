@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Star, Languages, ClipboardCheck, Trophy, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { quizQuestions, modules } from "@/data/mock";
 import { cn } from "@/lib/utils";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Link } from "react-router-dom";
+import { useQuizAttempts } from "@/hooks/useQuizAttempts";
 
 type Phase = "intro" | "playing" | "result";
 
@@ -18,7 +19,10 @@ export default function Quiz() {
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [showAr, setShowAr] = useState(false);
-  const [answers, setAnswers] = useState<Array<{ correct: boolean }>>([]);
+  const [answers, setAnswers] = useState<Array<{ qid: string; correct: boolean; selected: number }>>([]);
+  const startedAtRef = useRef<number>(Date.now());
+  const { save } = useQuizAttempts();
+  const savedRef = useRef(false);
 
   const total = questions.length;
   const q = questions[idx];
@@ -29,17 +33,30 @@ export default function Quiz() {
   function start() {
     setPhase("playing");
     setIdx(0); setSelected(null); setAnswers([]); setShowAr(false);
+    startedAtRef.current = Date.now();
+    savedRef.current = false;
   }
 
   function submit() {
     if (selected === null) return;
-    setAnswers((a) => [...a, { correct: selected === q.correctIndex }]);
+    setAnswers((a) => [...a, { qid: q.id, correct: selected === q.correctIndex, selected }]);
   }
 
   function next() {
     if (idx + 1 >= total) setPhase("result");
     else { setIdx((i) => i + 1); setSelected(null); setShowAr(false); }
   }
+
+  useEffect(() => {
+    if (phase === "result" && !savedRef.current && total > 0) {
+      savedRef.current = true;
+      void save({
+        module_id: moduleFilter === "all" ? null : moduleFilter,
+        score, total, duration_seconds: Math.round((Date.now() - startedAtRef.current) / 1000),
+        answers,
+      });
+    }
+  }, [phase, total, score, moduleFilter, answers, save]);
 
   if (phase === "intro") {
     return (
