@@ -58,7 +58,7 @@ export default function ModuleDetail() {
       </div>
 
       <div className="mt-6 card-base p-5">
-        <ProgressBar value={module.progress} showLabel />
+        <ProgressBar value={livePct} showLabel />
       </div>
 
       <div className="mt-8">
