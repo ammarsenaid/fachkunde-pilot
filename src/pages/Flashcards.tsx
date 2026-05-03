@@ -3,9 +3,11 @@ import { ArrowLeft, ArrowRight, RotateCcw, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { flashcards, modules } from "@/data/mock";
 import { cn } from "@/lib/utils";
+import { useFlashcardReviews } from "@/hooks/useFlashcardReviews";
 
 export default function FlashcardsPage() {
   const [moduleFilter, setModuleFilter] = useState<string>("all");
+  const { reviews, rate, dueCount } = useFlashcardReviews();
   const cards = useMemo(
     () => (moduleFilter === "all" ? flashcards : flashcards.filter((c) => c.moduleId === moduleFilter)),
     [moduleFilter]
@@ -16,9 +18,10 @@ export default function FlashcardsPage() {
 
   const card = cards[idx % cards.length];
 
-  function rate(kind: "knew" | "unsure" | "missed") {
+  async function handleRate(kind: "knew" | "unsure" | "missed") {
     setStats((s) => ({ ...s, [kind]: s[kind] + 1 }));
     setFlipped(false);
+    await rate(card.id, card.moduleId, kind);
     setIdx((i) => i + 1);
   }
 
