@@ -14,6 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          module_id: string
+          subtopic_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          module_id: string
+          subtopic_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          module_id?: string
+          subtopic_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flashcard_reviews: {
+        Row: {
+          card_id: string
+          created_at: string
+          due_at: string
+          ease: number
+          id: string
+          interval_days: number
+          last_rating: string | null
+          module_id: string | null
+          repetitions: number
+          reviewed_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          due_at?: string
+          ease?: number
+          id?: string
+          interval_days?: number
+          last_rating?: string | null
+          module_id?: string | null
+          repetitions?: number
+          reviewed_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          due_at?: string
+          ease?: number
+          id?: string
+          interval_days?: number
+          last_rating?: string | null
+          module_id?: string | null
+          repetitions?: number
+          reviewed_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          module_id: string | null
+          subtopic_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          module_id?: string | null
+          subtopic_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          module_id?: string | null
+          subtopic_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -41,6 +146,75 @@ export type Database = {
           id?: string
           preferred_language?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      quiz_attempts: {
+        Row: {
+          answers: Json
+          created_at: string
+          duration_seconds: number
+          id: string
+          module_id: string | null
+          score: number
+          total: number
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          module_id?: string | null
+          score?: number
+          total?: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          module_id?: string | null
+          score?: number
+          total?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subtopic_progress: {
+        Row: {
+          created_at: string
+          id: string
+          last_visited_at: string
+          module_id: string
+          progress_pct: number
+          status: Database["public"]["Enums"]["progress_status"]
+          subtopic_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_visited_at?: string
+          module_id: string
+          progress_pct?: number
+          status?: Database["public"]["Enums"]["progress_status"]
+          subtopic_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_visited_at?: string
+          module_id?: string
+          progress_pct?: number
+          status?: Database["public"]["Enums"]["progress_status"]
+          subtopic_id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -80,6 +254,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "student"
+      progress_status: "not_started" | "in_progress" | "review" | "done"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -208,6 +383,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "student"],
+      progress_status: ["not_started", "in_progress", "review", "done"],
     },
   },
 } as const
