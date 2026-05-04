@@ -41,6 +41,63 @@ export type Database = {
         }
         Relationships: []
       }
+      content_mappings: {
+        Row: {
+          chunk_text: string
+          created_at: string
+          created_by: string
+          document_id: string
+          id: string
+          module_id: string
+          page_id: string | null
+          position: number
+          subtopic_id: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          chunk_text?: string
+          created_at?: string
+          created_by: string
+          document_id: string
+          id?: string
+          module_id: string
+          page_id?: string | null
+          position?: number
+          subtopic_id?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chunk_text?: string
+          created_at?: string
+          created_by?: string
+          document_id?: string
+          id?: string
+          module_id?: string
+          page_id?: string | null
+          position?: number
+          subtopic_id?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_mappings_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "pdf_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_mappings_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pdf_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flashcard_reviews: {
         Row: {
           card_id: string
@@ -118,6 +175,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pdf_documents: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          filename: string
+          id: string
+          page_count: number
+          status: Database["public"]["Enums"]["pdf_status"]
+          storage_path: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          filename: string
+          id?: string
+          page_count?: number
+          status?: Database["public"]["Enums"]["pdf_status"]
+          storage_path: string
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          filename?: string
+          id?: string
+          page_count?: number
+          status?: Database["public"]["Enums"]["pdf_status"]
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
+      pdf_pages: {
+        Row: {
+          content: string
+          created_at: string
+          document_id: string
+          id: string
+          page_number: number
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          document_id: string
+          id?: string
+          page_number: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          page_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdf_pages_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "pdf_documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -254,6 +379,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "student"
+      pdf_status: "uploaded" | "processing" | "ready" | "failed"
       progress_status: "not_started" | "in_progress" | "review" | "done"
     }
     CompositeTypes: {
@@ -383,6 +509,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "student"],
+      pdf_status: ["uploaded", "processing", "ready", "failed"],
       progress_status: ["not_started", "in_progress", "review", "done"],
     },
   },
