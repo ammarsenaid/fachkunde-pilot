@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { modules } from "@/data/mock";
+import { PdfManager } from "@/components/PdfManager";
 
 const sections = [
   { id: "modules", label: "Module", icon: BookOpen },
@@ -75,32 +76,7 @@ export default function Admin() {
             </>
           )}
 
-          {section === "content" && (
-            <>
-              <h2 className="text-lg font-semibold">Inhalte hinzufügen</h2>
-              <div className="card-base p-6">
-                <label className="text-sm font-medium">PDF / Buch hochladen</label>
-                <div className="mt-3 rounded-2xl border-2 border-dashed border-border p-10 text-center">
-                  <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-                  <div className="mt-3 text-sm font-medium">PDF hierher ziehen oder klicken</div>
-                  <p className="mt-1 text-xs text-muted-foreground">Wird später automatisch in Module aufgeteilt</p>
-                  <Button className="mt-4" variant="outline">Datei auswählen</Button>
-                </div>
-              </div>
-              <div className="card-base p-6">
-                <label className="text-sm font-medium">Lesetext hinzufügen</label>
-                <Input className="mt-3" placeholder="Titel" />
-                <textarea className="mt-3 min-h-[160px] w-full rounded-lg border border-border bg-background p-3 text-sm" placeholder="Inhalt eingeben…" />
-                <div className="mt-3 flex items-center justify-between">
-                  <label className="inline-flex items-center gap-2 text-sm">
-                    <input type="checkbox" className="rounded" />
-                    <Star className="h-3.5 w-3.5 text-warning" /> Als prüfungsrelevant markieren
-                  </label>
-                  <Button className="bg-primary hover:bg-primary-hover">Speichern</Button>
-                </div>
-              </div>
-            </>
-          )}
+          {section === "content" && <PdfManager />}
 
           {section === "flashcards" && (
             <>
