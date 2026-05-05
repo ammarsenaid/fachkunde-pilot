@@ -143,6 +143,123 @@ export type Database = {
         }
         Relationships: []
       }
+      flashcards: {
+        Row: {
+          arabic_hint: string | null
+          back: string
+          created_at: string
+          difficulty: string
+          front: string
+          id: string
+          module_id: string
+          subtopic_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          arabic_hint?: string | null
+          back: string
+          created_at?: string
+          difficulty?: string
+          front: string
+          id?: string
+          module_id: string
+          subtopic_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          arabic_hint?: string | null
+          back?: string
+          created_at?: string
+          difficulty?: string
+          front?: string
+          id?: string
+          module_id?: string
+          subtopic_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flashcards_subtopic_id_fkey"
+            columns: ["subtopic_id"]
+            isOneToOne: false
+            referencedRelation: "subtopics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      glossary_terms: {
+        Row: {
+          arabic: string | null
+          category: string
+          created_at: string
+          definition: string
+          id: string
+          term: string
+          updated_at: string
+        }
+        Insert: {
+          arabic?: string | null
+          category?: string
+          created_at?: string
+          definition: string
+          id?: string
+          term: string
+          updated_at?: string
+        }
+        Update: {
+          arabic?: string | null
+          category?: string
+          created_at?: string
+          definition?: string
+          id?: string
+          term?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      modules: {
+        Row: {
+          created_at: string
+          description: string
+          estimated_minutes: number
+          icon: string
+          id: string
+          number: number
+          position: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          estimated_minutes?: number
+          icon?: string
+          id: string
+          number: number
+          position?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          estimated_minutes?: number
+          icon?: string
+          id?: string
+          number?: number
+          position?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           content: string
@@ -307,6 +424,60 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_questions: {
+        Row: {
+          arabic_explanation: string | null
+          correct_index: number
+          created_at: string
+          explanation: string
+          id: string
+          module_id: string
+          options: Json
+          question: string
+          subtopic_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          arabic_explanation?: string | null
+          correct_index?: number
+          created_at?: string
+          explanation?: string
+          id?: string
+          module_id: string
+          options?: Json
+          question: string
+          subtopic_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          arabic_explanation?: string | null
+          correct_index?: number
+          created_at?: string
+          explanation?: string
+          id?: string
+          module_id?: string
+          options?: Json
+          question?: string
+          subtopic_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_questions_subtopic_id_fkey"
+            columns: ["subtopic_id"]
+            isOneToOne: false
+            referencedRelation: "subtopics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subtopic_progress: {
         Row: {
           created_at: string
@@ -342,6 +513,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      subtopics: {
+        Row: {
+          created_at: string
+          description: string
+          exam_relevance: number
+          id: string
+          module_id: string
+          position: number
+          reading_minutes: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          exam_relevance?: number
+          id: string
+          module_id: string
+          position?: number
+          reading_minutes?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          exam_relevance?: number
+          id?: string
+          module_id?: string
+          position?: number
+          reading_minutes?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subtopics_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
