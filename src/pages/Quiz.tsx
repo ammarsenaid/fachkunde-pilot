@@ -1,21 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Star, Languages, ClipboardCheck, Trophy, AlertTriangle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { CheckCircle2, XCircle, ArrowRight, RotateCcw, Languages, ClipboardCheck, Trophy, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { quizQuestions, modules } from "@/data/mock";
 import { cn } from "@/lib/utils";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Link } from "react-router-dom";
 import { useQuizAttempts } from "@/hooks/useQuizAttempts";
+import { useModules, useQuizQuestionsAdmin } from "@/hooks/useCurriculum";
 
 type Phase = "intro" | "playing" | "result";
 
 export default function Quiz() {
   const [phase, setPhase] = useState<Phase>("intro");
   const [moduleFilter, setModuleFilter] = useState<string>("all");
-  const questions = useMemo(
-    () => (moduleFilter === "all" ? quizQuestions : quizQuestions.filter((q) => q.moduleId === moduleFilter)),
-    [moduleFilter]
-  );
+  const { data: modules } = useModules();
+  const { data: questions, loading } = useQuizQuestionsAdmin(moduleFilter);
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [showAr, setShowAr] = useState(false);
@@ -31,17 +29,13 @@ export default function Quiz() {
   const passed = percent >= 75;
 
   function start() {
-    setPhase("playing");
-    setIdx(0); setSelected(null); setAnswers([]); setShowAr(false);
-    startedAtRef.current = Date.now();
-    savedRef.current = false;
+    setPhase("playing"); setIdx(0); setSelected(null); setAnswers([]); setShowAr(false);
+    startedAtRef.current = Date.now(); savedRef.current = false;
   }
-
   function submit() {
-    if (selected === null) return;
-    setAnswers((a) => [...a, { qid: q.id, correct: selected === q.correctIndex, selected }]);
+    if (selected === null || !q) return;
+    setAnswers((a) => [...a, { qid: q.id, correct: selected === q.correct_index, selected }]);
   }
-
   function next() {
     if (idx + 1 >= total) setPhase("result");
     else { setIdx((i) => i + 1); setSelected(null); setShowAr(false); }
@@ -66,44 +60,29 @@ export default function Quiz() {
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           <div className="card-base p-6 lg:col-span-2">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-              <ClipboardCheck className="h-6 w-6" />
-            </div>
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><ClipboardCheck className="h-6 w-6" /></div>
             <h2 className="mt-4 text-xl font-semibold">Mock-Prüfung starten</h2>
-            <p className="mt-2 text-muted-foreground">
-              Beantworte alle Fragen, danach erhältst du eine vollständige Auswertung mit Schwächenanalyse.
-            </p>
+            <p className="mt-2 text-muted-foreground">Beantworte alle Fragen, danach erhältst du eine vollständige Auswertung mit Schwächenanalyse.</p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-xl bg-secondary p-4">
-                <div className="text-xs text-muted-foreground">Fragen</div>
-                <div className="mt-1 text-2xl font-bold">{total}</div>
-              </div>
-              <div className="rounded-xl bg-secondary p-4">
-                <div className="text-xs text-muted-foreground">Zeit</div>
-                <div className="mt-1 text-2xl font-bold">~{total * 2} Min</div>
-              </div>
-              <div className="rounded-xl bg-secondary p-4">
-                <div className="text-xs text-muted-foreground">Bestehensgrenze</div>
-                <div className="mt-1 text-2xl font-bold">75%</div>
-              </div>
+              <div className="rounded-xl bg-secondary p-4"><div className="text-xs text-muted-foreground">Fragen</div><div className="mt-1 text-2xl font-bold">{total}</div></div>
+              <div className="rounded-xl bg-secondary p-4"><div className="text-xs text-muted-foreground">Zeit</div><div className="mt-1 text-2xl font-bold">~{total * 2} Min</div></div>
+              <div className="rounded-xl bg-secondary p-4"><div className="text-xs text-muted-foreground">Bestehensgrenze</div><div className="mt-1 text-2xl font-bold">75%</div></div>
             </div>
 
             <div className="mt-6">
               <label className="text-sm font-medium">Modul auswählen</label>
-              <select
-                value={moduleFilter}
-                onChange={(e) => setModuleFilter(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm"
-              >
+              <select value={moduleFilter} onChange={(e) => setModuleFilter(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm">
                 <option value="all">Alle Module (komplette Prüfung)</option>
                 {modules.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
               </select>
             </div>
 
-            <Button size="lg" className="mt-6 bg-primary hover:bg-primary-hover" onClick={start}>
+            <Button size="lg" disabled={total === 0} className="mt-6 bg-primary hover:bg-primary-hover" onClick={start}>
               Prüfung starten <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
+            {total === 0 && !loading && <p className="mt-3 text-sm text-muted-foreground">Keine Fragen in diesem Modul.</p>}
           </div>
 
           <div className="card-base p-6">
@@ -121,12 +100,8 @@ export default function Quiz() {
   }
 
   if (phase === "result") {
-    const wrongModules = answers
-      .map((a, i) => (!a.correct ? questions[i].moduleId : null))
-      .filter(Boolean) as string[];
-    const weakModules = Array.from(new Set(wrongModules))
-      .map((id) => modules.find((m) => m.id === id))
-      .filter(Boolean);
+    const wrongModules = answers.map((a, i) => (!a.correct ? questions[i]?.module_id : null)).filter(Boolean) as string[];
+    const weakModules = Array.from(new Set(wrongModules)).map((id) => modules.find((m) => m.id === id)).filter(Boolean);
 
     return (
       <div className="container-page py-8">
@@ -145,10 +120,7 @@ export default function Quiz() {
 
           {weakModules.length > 0 && (
             <div className="card-base mt-6 p-6">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-warning" />
-                <h2 className="font-semibold">Schwächen-Analyse</h2>
-              </div>
+              <div className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-warning" /><h2 className="font-semibold">Schwächen-Analyse</h2></div>
               <ul className="mt-3 space-y-2">
                 {weakModules.map((m) => (
                   <li key={m!.id} className="flex items-center justify-between rounded-lg bg-warning-soft/40 px-3 py-2 text-sm">
@@ -161,19 +133,16 @@ export default function Quiz() {
           )}
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button onClick={start} className="bg-primary hover:bg-primary-hover">
-              <RotateCcw className="mr-2 h-4 w-4" /> Falsche Antworten wiederholen
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/lernplan">Lernplan anpassen</Link>
-            </Button>
+            <Button onClick={start} className="bg-primary hover:bg-primary-hover"><RotateCcw className="mr-2 h-4 w-4" /> Neu starten</Button>
+            <Button asChild variant="outline"><Link to="/lernplan">Lernplan anpassen</Link></Button>
           </div>
         </div>
       </div>
     );
   }
 
-  // playing
+  if (!q) return <div className="container-page py-12 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-accent-blue" /></div>;
+
   const submitted = answers.length > idx;
   return (
     <div className="container-page py-8">
@@ -190,27 +159,20 @@ export default function Quiz() {
           <div className="mt-6 space-y-2.5">
             {q.options.map((opt, i) => {
               const isSelected = selected === i;
-              const isCorrect = i === q.correctIndex;
+              const isCorrect = i === q.correct_index;
               const showState = submitted;
               return (
-                <button
-                  key={i}
-                  disabled={submitted}
-                  onClick={() => setSelected(i)}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all",
+                <button key={i} disabled={submitted} onClick={() => setSelected(i)}
+                  className={cn("flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all",
                     !showState && isSelected && "border-accent-blue bg-accent-blue-soft",
                     !showState && !isSelected && "border-border hover:border-accent-blue/50 hover:bg-secondary",
                     showState && isCorrect && "border-success bg-success-soft text-foreground",
                     showState && !isCorrect && isSelected && "border-destructive bg-destructive-soft",
-                    showState && !isCorrect && !isSelected && "border-border opacity-60",
-                  )}
-                >
+                    showState && !isCorrect && !isSelected && "border-border opacity-60")}>
                   <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm font-semibold",
                     !showState && isSelected ? "bg-accent-blue text-accent-blue-foreground" : "bg-secondary text-muted-foreground",
                     showState && isCorrect && "bg-success text-success-foreground",
-                    showState && !isCorrect && isSelected && "bg-destructive text-destructive-foreground",
-                  )}>
+                    showState && !isCorrect && isSelected && "bg-destructive text-destructive-foreground")}>
                     {String.fromCharCode(65 + i)}
                   </span>
                   <span className="flex-1 text-sm sm:text-base">{opt}</span>
@@ -225,29 +187,20 @@ export default function Quiz() {
             <div className="mt-6 rounded-2xl border border-border bg-info-soft p-5 animate-fade-in">
               <div className="text-sm font-semibold text-accent-blue">Erklärung</div>
               <p className="mt-2 text-sm text-foreground">{q.explanation}</p>
-              {q.arabicExplanation && (
+              {q.arabic_explanation && (
                 <>
                   <Button size="sm" variant="ghost" className="mt-3 h-8 px-2 text-accent-blue hover:bg-accent-blue/10" onClick={() => setShowAr((v) => !v)}>
                     <Languages className="mr-1.5 h-3.5 w-3.5" /> {showAr ? "Arabisch ausblenden" : "Arabische Erklärung"}
                   </Button>
-                  {showAr && (
-                    <div className="mt-2 rounded-xl bg-card p-3 font-arabic text-right text-sm leading-loose" dir="rtl">
-                      {q.arabicExplanation}
-                    </div>
-                  )}
+                  {showAr && <div className="mt-2 rounded-xl bg-card p-3 font-arabic text-right text-sm leading-loose" dir="rtl">{q.arabic_explanation}</div>}
                 </>
               )}
             </div>
           )}
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <Button variant="ghost" size="sm">
-              <Star className="mr-1.5 h-4 w-4" /> Als wichtig markieren
-            </Button>
+          <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
             {!submitted ? (
-              <Button onClick={submit} disabled={selected === null} className="bg-primary hover:bg-primary-hover">
-                Antwort prüfen
-              </Button>
+              <Button onClick={submit} disabled={selected === null} className="bg-primary hover:bg-primary-hover">Antwort prüfen</Button>
             ) : (
               <Button onClick={next} className="bg-primary hover:bg-primary-hover">
                 {idx + 1 >= total ? "Auswertung ansehen" : "Nächste Frage"} <ArrowRight className="ml-1.5 h-4 w-4" />
