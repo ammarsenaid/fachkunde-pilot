@@ -175,7 +175,7 @@ export default function Notes() {
                     <div className="text-sm font-semibold">{q.question}</div>
                     <span className="rounded-full bg-destructive-soft px-2 py-0.5 text-xs font-medium text-destructive">{q.wrongCount}×</span>
                   </div>
-                  <div className="mt-2 text-sm text-success">✓ {q.options[q.correctIndex]}</div>
+                  <div className="mt-2 text-sm text-success">✓ {q.options[q.correct_index]}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{q.explanation}</div>
                 </li>
               ))}
