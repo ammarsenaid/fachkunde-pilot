@@ -26,7 +26,7 @@ import {
   useContentMappings,
   type PdfDocument,
 } from "@/hooks/usePdfDocuments";
-import { modules, subtopics } from "@/data/mock";
+import { useModules, useSubtopics } from "@/hooks/useCurriculum";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -207,15 +207,19 @@ function DocumentRow({
 function MappingPanel({ doc }: { doc: PdfDocument }) {
   const { pages, loading } = usePdfPages(doc.id);
   const { mappings, create, remove } = useContentMappings(doc.id);
+  const { data: modules } = useModules();
 
   const [activePageId, setActivePageId] = useState<string | null>(null);
-  const [moduleId, setModuleId] = useState<string>(modules[0]?.id ?? "");
+  const [moduleId, setModuleId] = useState<string>("");
   const [subtopicId, setSubtopicId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [chunk, setChunk] = useState("");
 
+  // default module once loaded
+  if (!moduleId && modules[0]) setTimeout(() => setModuleId(modules[0].id), 0);
+
+  const { data: moduleSubtopics } = useSubtopics(moduleId || undefined);
   const activePage = pages.find((p) => p.id === activePageId) ?? pages[0] ?? null;
-  const moduleSubtopics = subtopics.filter((s) => s.moduleId === moduleId);
 
   const handleSelectPage = (pageId: string) => {
     setActivePageId(pageId);
