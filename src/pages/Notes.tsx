@@ -10,7 +10,7 @@ import { useFlashcardReviews } from "@/hooks/useFlashcardReviews";
 import { useQuizAttempts } from "@/hooks/useQuizAttempts";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { modules, subtopics, flashcards, quizQuestions } from "@/data/mock";
+import { useModules, useSubtopics, useFlashcardsAdmin, useQuizQuestionsAdmin } from "@/hooks/useCurriculum";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -28,19 +28,23 @@ export default function Notes() {
   const { bookmarks, toggle } = useBookmarks();
   const { reviews } = useFlashcardReviews();
   const { attempts } = useQuizAttempts();
+  const { data: modules } = useModules();
+  const { data: subtopics } = useSubtopics();
+  const { data: flashcards } = useFlashcardsAdmin("all");
+  const { data: quizQuestions } = useQuizQuestionsAdmin("all");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
   const hardCards = useMemo(() => {
     const ids = reviews.filter((r) => r.last_rating === "missed" || r.ease < 2).map((r) => r.card_id);
     return flashcards.filter((c) => ids.includes(c.id));
-  }, [reviews]);
+  }, [reviews, flashcards]);
 
   const wrongQuestions = useMemo(() => {
     const counts = new Map<string, number>();
     attempts.forEach((a) => a.answers?.forEach((ans) => { if (!ans.correct) counts.set(ans.qid, (counts.get(ans.qid) ?? 0) + 1); }));
     return quizQuestions.filter((q) => counts.has(q.id)).map((q) => ({ ...q, wrongCount: counts.get(q.id) ?? 0 }));
-  }, [attempts]);
+  }, [attempts, quizQuestions]);
 
   return (
     <div className="container-page py-8">
@@ -171,7 +175,7 @@ export default function Notes() {
                     <div className="text-sm font-semibold">{q.question}</div>
                     <span className="rounded-full bg-destructive-soft px-2 py-0.5 text-xs font-medium text-destructive">{q.wrongCount}×</span>
                   </div>
-                  <div className="mt-2 text-sm text-success">✓ {q.options[q.correctIndex]}</div>
+                  <div className="mt-2 text-sm text-success">✓ {q.options[q.correct_index]}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{q.explanation}</div>
                 </li>
               ))}

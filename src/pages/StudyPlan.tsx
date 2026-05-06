@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Calendar, CheckCircle2, Circle, BookOpen, Layers, ClipboardCheck, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Input } from "@/components/ui/input";
-import { modules } from "@/data/mock";
+import { useModules } from "@/hooks/useCurriculum";
 import { cn } from "@/lib/utils";
 
 const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
@@ -13,22 +13,27 @@ type TaskKind = keyof typeof taskIcons;
 
 interface Task { kind: TaskKind; label: string; done?: boolean }
 
-const week: { day: string; date: string; tasks: Task[] }[] = days.map((day, i) => ({
-  day,
-  date: `${15 + i}. Mai`,
-  tasks: [
-    { kind: "read", label: `${modules[i % modules.length].title}: 1 Unterthema`, done: i < 2 },
-    { kind: "flashcards", label: "15 Karteikarten", done: i < 2 },
-    ...(i % 2 === 0 ? [{ kind: "quiz" as TaskKind, label: "Quiz beantworten", done: i === 0 }] : []),
-    ...(i === 6 ? [{ kind: "review" as TaskKind, label: "Wochenreview" }] : []),
-  ],
-}));
-
 export default function StudyPlan() {
   const [examDate, setExamDate] = useState("2026-06-15");
+  const { data: modules } = useModules();
+
+  const week = useMemo<{ day: string; date: string; tasks: Task[] }[]>(() => {
+    if (!modules.length) return days.map((day, i) => ({ day, date: `${15 + i}. Mai`, tasks: [] }));
+    return days.map((day, i) => ({
+      day,
+      date: `${15 + i}. Mai`,
+      tasks: [
+        { kind: "read", label: `${modules[i % modules.length].title}: 1 Unterthema`, done: i < 2 },
+        { kind: "flashcards", label: "15 Karteikarten", done: i < 2 },
+        ...(i % 2 === 0 ? [{ kind: "quiz" as TaskKind, label: "Quiz beantworten", done: i === 0 }] : []),
+        ...(i === 6 ? [{ kind: "review" as TaskKind, label: "Wochenreview" }] : []),
+      ],
+    }));
+  }, [modules]);
+
   const totalTasks = week.reduce((s, d) => s + d.tasks.length, 0);
   const doneTasks = week.reduce((s, d) => s + d.tasks.filter((t) => t.done).length, 0);
-  const percent = Math.round((doneTasks / totalTasks) * 100);
+  const percent = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
   return (
     <div className="container-page py-8">

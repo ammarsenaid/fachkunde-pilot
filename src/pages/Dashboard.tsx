@@ -3,7 +3,7 @@ import { Flame, Target, BookOpen, Layers, ClipboardCheck, TrendingUp, ArrowRight
 import { Button } from "@/components/ui/button";
 import { DashboardStatCard } from "@/components/DashboardStatCard";
 import { ProgressBar } from "@/components/ProgressBar";
-import { modules, subtopics } from "@/data/mock";
+import { useModules, useSubtopics } from "@/hooks/useCurriculum";
 import { useAllProgress } from "@/hooks/useProgress";
 import { useFlashcardReviews } from "@/hooks/useFlashcardReviews";
 import { useQuizAttempts } from "@/hooks/useQuizAttempts";
@@ -11,13 +11,15 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
   const { profile } = useAuth();
+  const { data: modules, loading: modulesLoading } = useModules();
+  const { data: allSubtopics } = useSubtopics();
   const { data: progress } = useAllProgress();
   const { dueCount } = useFlashcardReviews();
   const { attempts } = useQuizAttempts();
 
   const moduleProgress = modules.map((m) => {
-    const subs = subtopics.filter((s) => s.moduleId === m.id);
-    const total = subs.length || m.subtopicCount || 1;
+    const subs = allSubtopics.filter((s) => s.module_id === m.id);
+    const total = subs.length || 1;
     const moduleRows = progress.filter((p) => p.module_id === m.id);
     const done = moduleRows.filter((p) => p.status === "done").length;
     const inProg = moduleRows.filter((p) => p.status === "in_progress" || p.status === "review").length;
@@ -27,7 +29,15 @@ export default function Dashboard() {
     return { ...m, progress: pct, status };
   });
   const current = moduleProgress.find((m) => m.status === "in_progress") ?? moduleProgress.find((m) => m.status !== "completed") ?? moduleProgress[0];
-  const overall = Math.round(moduleProgress.reduce((sum, m) => sum + m.progress, 0) / moduleProgress.length);
+  const overall = moduleProgress.length ? Math.round(moduleProgress.reduce((sum, m) => sum + m.progress, 0) / moduleProgress.length) : 0;
+
+  if (modulesLoading || !current) {
+    return (
+      <div className="container-page py-12 text-center text-sm text-muted-foreground">
+        {modulesLoading ? "Lade…" : "Noch keine Module vorhanden. Bitte im Admin-Bereich anlegen."}
+      </div>
+    );
+  }
   const lastAttempt = attempts[0];
   const lastPct = lastAttempt ? Math.round((lastAttempt.score / Math.max(1, lastAttempt.total)) * 100) : null;
   const goal = profile?.daily_goal_minutes ?? 30;

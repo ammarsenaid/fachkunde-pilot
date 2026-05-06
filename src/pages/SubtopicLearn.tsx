@@ -1,23 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Clock, Lightbulb, AlertCircle, ScrollText, Languages, CheckCircle2, Layers, ClipboardCheck, Star, StickyNote } from "lucide-react";
-import { modules, subtopics } from "@/data/mock";
+import { ArrowLeft, Clock, Lightbulb, AlertCircle, Languages, CheckCircle2, Layers, ClipboardCheck, Star, StickyNote, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAllProgress, upsertProgress } from "@/hooks/useProgress";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { useNotes } from "@/hooks/useNotes";
 import { useAuth } from "@/contexts/AuthContext";
+import { useModules, useSubtopics } from "@/hooks/useCurriculum";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface MappingChunk { id: string; title: string | null; chunk_text: string; position: number; }
 
 export default function SubtopicLearn() {
   const { moduleId, subtopicId } = useParams();
+  const { data: modules, loading: modulesLoading } = useModules();
+  const { data: moduleSubs, loading: subsLoading } = useSubtopics(moduleId);
   const module = modules.find((m) => m.id === moduleId);
-  const moduleSubs = subtopics.filter((s) => s.moduleId === moduleId);
   const subtopic = moduleSubs.find((s) => s.id === subtopicId) ?? moduleSubs[0];
+
   const [showArabic, setShowArabic] = useState(false);
+  const [chunks, setChunks] = useState<MappingChunk[]>([]);
+  const [chunksLoading, setChunksLoading] = useState(false);
+
   const { user } = useAuth();
   const { data: progress, refresh } = useAllProgress();
   const { isBookmarked, toggle: toggleBookmark } = useBookmarks();
@@ -33,7 +41,23 @@ export default function SubtopicLearn() {
     quiz: !!progRow && progRow.status === "done",
   };
 
-  // Auto-mark in_progress on entering
+  // Load mapped PDF content for this subtopic
+  useEffect(() => {
+    if (!module?.id || !subtopic?.id) return;
+    setChunksLoading(true);
+    supabase
+      .from("content_mappings")
+      .select("id, title, chunk_text, position")
+      .eq("module_id", module.id)
+      .eq("subtopic_id", subtopic.id)
+      .order("position", { ascending: true })
+      .then(({ data }) => {
+        setChunks((data ?? []) as MappingChunk[]);
+        setChunksLoading(false);
+      });
+  }, [module?.id, subtopic?.id]);
+
+  // Auto-mark in_progress
   useEffect(() => {
     if (!user || !module || !subtopic) return;
     if (!progRow) {
@@ -51,10 +75,15 @@ export default function SubtopicLearn() {
     refresh();
   }
 
+  if (modulesLoading || subsLoading) {
+    return <div className="container-page py-16 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" /></div>;
+  }
+
   if (!module || !subtopic) {
     return (
       <div className="container-page py-12">
         <Link to="/module" className="text-accent-blue">← Zurück zu Module</Link>
+        <p className="mt-4 text-sm text-muted-foreground">Inhalt nicht gefunden.</p>
       </div>
     );
   }
@@ -95,84 +124,49 @@ export default function SubtopicLearn() {
         {/* Center: reader */}
         <article className="card-base p-6 sm:p-10">
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {subtopic.readingMinutes} Min Lesezeit</span>
-            {subtopic.examRelevance === 3 && (
+            <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {subtopic.reading_minutes} Min Lesezeit</span>
+            {subtopic.exam_relevance === 3 && (
               <span className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 font-medium text-warning">
                 <Star className="h-3 w-3" /> Hoch prüfungsrelevant
               </span>
             )}
           </div>
           <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{subtopic.title}</h1>
-          <p className="mt-3 text-lg text-muted-foreground">{subtopic.description}</p>
+          {subtopic.description && <p className="mt-3 text-lg text-muted-foreground">{subtopic.description}</p>}
 
-          {/* Important terms */}
-          <div className="mt-6 rounded-2xl border border-border bg-accent-blue-soft/40 p-5">
-            <div className="flex items-center gap-2 text-accent-blue">
-              <ScrollText className="h-4 w-4" />
-              <span className="text-sm font-semibold">Wichtige Begriffe</span>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {["Genehmigung", "Konzession", "Beförderungspflicht", "Betriebssitz", "Tarifpflicht"].map((t) => (
-                <span key={t} className="rounded-full bg-card px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border">{t}</span>
-              ))}
-            </div>
-          </div>
-
-          {/* Main content */}
+          {/* Mapped content */}
           <div className="prose prose-slate mt-6 max-w-none text-foreground">
-            <p className="leading-relaxed">
-              Das Personenbeförderungsgesetz (PBefG) bildet die zentrale rechtliche Grundlage für die entgeltliche
-              oder geschäftsmäßige Beförderung von Personen mit Kraftfahrzeugen, Straßenbahnen und Oberleitungsbussen.
-              Für Taxi- und Mietwagenunternehmer ist es das wichtigste Gesetz und Prüfungsthema.
-            </p>
-            <p className="mt-4 leading-relaxed">
-              Wer Personen entgeltlich befördern möchte, benötigt eine Genehmigung. Die Genehmigung wird vom Unternehmer
-              persönlich beantragt und ist an Voraussetzungen wie persönliche Zuverlässigkeit, finanzielle Leistungsfähigkeit
-              und fachliche Eignung geknüpft.
-            </p>
-
-            <h2 className="mt-8 text-xl font-semibold">Pflichten des Unternehmers</h2>
-            <ul className="mt-3 space-y-2">
-              <li>Einhaltung der Beförderungs- und Tarifpflicht im Taxiverkehr</li>
-              <li>Sicherstellung der Betriebssicherheit der Fahrzeuge</li>
-              <li>Aufzeichnungs- und Aufbewahrungspflichten gegenüber Behörden</li>
-              <li>Beachtung der Lenk- und Ruhezeiten der Fahrer</li>
-            </ul>
+            {chunksLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+            {!chunksLoading && chunks.length === 0 && (
+              <div className="rounded-2xl border border-dashed border-border p-6 text-center">
+                <Lightbulb className="mx-auto h-5 w-5 text-muted-foreground" />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Für dieses Unterthema sind noch keine Inhalte zugeordnet.<br />
+                  Im Admin-Bereich kann ein PDF hochgeladen und Seiten zugeordnet werden.
+                </p>
+              </div>
+            )}
+            {chunks.map((c) => (
+              <section key={c.id} className="mt-6 first:mt-0">
+                {c.title && <h2 className="text-xl font-semibold">{c.title}</h2>}
+                <p className="mt-2 whitespace-pre-wrap leading-relaxed">{c.chunk_text}</p>
+              </section>
+            ))}
           </div>
 
-          {/* Boxes */}
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-success-soft/60 p-5">
-              <div className="flex items-center gap-2 text-success">
-                <Lightbulb className="h-4 w-4" />
-                <span className="text-sm font-semibold">Merke dir</span>
-              </div>
-              <p className="mt-2 text-sm text-foreground">
-                Eine PBefG-Genehmigung ist immer personengebunden und betriebsbezogen – sie ist nicht übertragbar.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-border bg-warning-soft/60 p-5">
+          {chunks.length > 0 && (
+            <div className="mt-8 rounded-2xl border border-border bg-warning-soft/60 p-5">
               <div className="flex items-center gap-2 text-warning">
                 <AlertCircle className="h-4 w-4" />
                 <span className="text-sm font-semibold">Prüfungsrelevant</span>
               </div>
               <p className="mt-2 text-sm text-foreground">
-                Die drei Voraussetzungen der Genehmigung – Zuverlässigkeit, Leistungsfähigkeit und fachliche Eignung – werden in fast jeder Prüfung abgefragt.
+                Markiere wichtige Stellen mit dem Stern-Button rechts und übe das Thema mit Flashcards & Quiz.
               </p>
             </div>
-          </div>
+          )}
 
-          {/* Example scenario */}
-          <div className="mt-4 rounded-2xl border border-border p-5">
-            <div className="text-sm font-semibold text-foreground">Beispielszenario</div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Ein Mietwagen führt einen Kunden zum Flughafen. Während der Rückfahrt zum Betriebssitz erhält der Fahrer
-              per Funk einen neuen Auftrag in der Nähe. Er darf den Auftrag direkt annehmen, da der neue Auftrag
-              während der Rückfahrt eingegangen ist – die Rückkehrpflicht wird dadurch ausgesetzt.
-            </p>
-          </div>
-
-          {/* Arabic toggle */}
+          {/* Arabic toggle (kept as UI) */}
           <div className="mt-6">
             <Button variant="outline" onClick={() => setShowArabic((v) => !v)}>
               <Languages className="mr-2 h-4 w-4" />
@@ -180,10 +174,8 @@ export default function SubtopicLearn() {
             </Button>
             {showArabic && (
               <div className="mt-3 rounded-2xl border border-border bg-secondary/60 p-5 font-arabic text-right" dir="rtl">
-                <p className="leading-loose">
-                  قانون نقل الأشخاص (PBefG) هو الأساس القانوني الرئيسي لنقل الأشخاص مقابل أجر باستخدام السيارات.
-                  يحتاج كل من يرغب في نقل الأشخاص مقابل أجر إلى ترخيص شخصي، مرتبط بشروط مثل الموثوقية الشخصية،
-                  والقدرة المالية، والكفاءة المهنية.
+                <p className="leading-loose text-muted-foreground">
+                  الترجمة العربية لهذا الموضوع غير متوفرة بعد. يمكن إضافتها لاحقاً عبر لوحة الإدارة.
                 </p>
               </div>
             )}
