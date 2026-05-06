@@ -33,7 +33,7 @@ export default function StudyPlan() {
 
   const totalTasks = week.reduce((s, d) => s + d.tasks.length, 0);
   const doneTasks = week.reduce((s, d) => s + d.tasks.filter((t) => t.done).length, 0);
-  const percent = Math.round((doneTasks / totalTasks) * 100);
+  const percent = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
   return (
     <div className="container-page py-8">
